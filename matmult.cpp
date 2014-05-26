@@ -165,6 +165,42 @@ slice(const M & a, size_t i1, size_t i2, size_t j1, size_t j2) {
 	return matrix_view<T, false>(&a.at(i1, j1), i2-i1, j2-j1, a.data_width());
 }
 
+struct matrix_transpose_naive {
+	template <typename A, typename B>
+	void operator()(const A & a, B && b) {
+		const size_t n = a.rows();
+		const size_t m = a.columns();
+		assert(n == b.columns());
+		assert(m == b.rows());
+		for (size_t j = 0; j < m; ++j) {
+			for (size_t i = 0; i < n; ++i) {
+				b.at(j, i) = a.at(i, j);
+			}
+		}
+	}
+};
+
+struct matrix_transpose_recursive {
+	template <typename A, typename B>
+	void operator()(const A & a, B && b) {
+		const size_t n = a.rows();
+		const size_t m = a.columns();
+		assert(n == b.columns());
+		assert(m == b.rows());
+		if (n * m < 1000000) {
+			matrix_transpose_naive()(a, b);
+			return;
+		}
+		if (n > m) {
+			(*this)(slice(a, 0, n/2, 0, m), slice(b, 0, m, 0, n/2));
+			(*this)(slice(a, n/2, n, 0, m), slice(b, 0, m, n/2, n));
+		} else {
+			(*this)(slice(a, 0, n, 0, m/2), slice(b, 0, m/2, 0, n));
+			(*this)(slice(a, 0, n, m/2, m), slice(b, m/2, m, 0, n));
+		}
+	}
+};
+
 struct multiply_naive {
 	template <typename A, typename B, typename AB>
 	void operator()(const A & a, const B & b, AB && ab) {
@@ -178,6 +214,26 @@ struct multiply_naive {
 			for (size_t j = 0; j < p; ++j) {
 				for (size_t k = 0; k < m; ++k) {
 					ab.at(i, j) += a.at(i, k) * b.at(k, j);
+				}
+			}
+		}
+	}
+};
+
+struct multiply_transpose {
+	template <typename A, typename B, typename AB>
+	void operator()(const A & a, const B & b, AB && ab) {
+		const size_t n = a.rows();
+		const size_t m = a.columns();
+		assert(m == b.rows());
+		const size_t p = b.columns();
+		typedef typename B::value_type T;
+		matrix<T> bt(p, m);
+		matrix_transpose_recursive()(b, bt);
+		for (size_t i = 0; i < n; ++i) {
+			for (size_t j = 0; j < p; ++j) {
+				for (size_t k = 0; k < m; ++k) {
+					ab.at(i, j) += a.at(i, k) * bt.at(j, k);
 				}
 			}
 		}
@@ -402,6 +458,8 @@ void multiply_mode(const std::string & mode, const A & a, const B & b, AB && ab)
 		multiply_recursive()(a, b, ab);
 	} else if (mode == "naive") {
 		multiply_naive()(a, b, ab);
+	} else if (mode == "transpose") {
+		multiply_transpose()(a, b, ab);
 	} else if (mode == "strassen") {
 		multiply_strassen()(a, b, ab);
 	} else {
