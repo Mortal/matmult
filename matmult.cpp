@@ -200,16 +200,16 @@ struct multiply_recursive {
 		const size_t max = std::max(std::max(n, m), p);
 		if (m == max) {
 			size_t h = m / 2;
-			multiply_recursive()(slice(a, 0, n, 0, h), slice(b, 0, h, 0, p), ab);
-			multiply_recursive()(slice(a, 0, n, h, m), slice(b, h, m, 0, p), ab);
+			(*this)(slice(a, 0, n, 0, h), slice(b, 0, h, 0, p), ab);
+			(*this)(slice(a, 0, n, h, m), slice(b, h, m, 0, p), ab);
 		} else if (n == max) {
 			size_t h = n / 2;
-			multiply_recursive()(slice(a, 0, h, 0, m), b, slice(ab, 0, h, 0, p));
-			multiply_recursive()(slice(a, h, n, 0, m), b, slice(ab, h, n, 0, p));
+			(*this)(slice(a, 0, h, 0, m), b, slice(ab, 0, h, 0, p));
+			(*this)(slice(a, h, n, 0, m), b, slice(ab, h, n, 0, p));
 		} else if (p == max) {
 			size_t h = p / 2;
-			multiply_recursive()(a, slice(b, 0, m, 0, h), slice(ab, 0, n, 0, h));
-			multiply_recursive()(a, slice(b, 0, m, h, p), slice(ab, 0, n, h, p));
+			(*this)(a, slice(b, 0, m, 0, h), slice(ab, 0, n, 0, h));
+			(*this)(a, slice(b, 0, m, h, p), slice(ab, 0, n, h, p));
 		}
 	}
 };
