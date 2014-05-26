@@ -77,10 +77,8 @@ public:
 	size_t rows() const { return m_rows; }
 	size_t columns() const { return m_columns; }
 	size_t data_width() const { return m_dataWidth; }
-	void resize(size_t n, size_t m) {
-		if (n != rows() || m != columns()) {
-			assert_fail("Attempt to resize a matrix_view");
-		}
+	void resize(size_t, size_t) {
+		assert_fail("Attempt to resize a matrix_view");
 	}
 
 	reference_type at(size_t i, size_t j) {
@@ -190,10 +188,11 @@ struct multiply_recursive {
 	template <typename A, typename B, typename AB>
 	void operator()(const A & a, const B & b, AB && ab) {
 		const size_t n = a.rows();
+		assert(n == ab.rows());
 		const size_t m = a.columns();
 		assert(m == b.rows());
 		const size_t p = b.columns();
-		ab.resize(n, p);
+		assert(p == ab.columns());
 		if (n <= 1 || m <= 1 || p <= 1 || n*m*p <= 1000) {
 			multiply_naive()(a, b, ab);
 			return;
