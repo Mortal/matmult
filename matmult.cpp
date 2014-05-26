@@ -295,6 +295,7 @@ struct multiply_strassen_impl {
 		matrix<T> t1(h, h);
 		matrix<T> t2(h, h);
 
+		// M1 := (A11 + A22) (B11 + B22)
 		std::cout << "compute m1" << std::endl;
 		matrix_copy(a11, t1);
 		matrix_add(a22, t1);
@@ -302,26 +303,31 @@ struct multiply_strassen_impl {
 		matrix_add(b22, t2);
 		multiply_strassen_impl()(t1, t2, m1);
 
+		// M2 := (A21 + A22) B11
 		std::cout << "compute m2" << std::endl;
 		matrix_copy(a21, t1);
 		matrix_add(a22, t1);
 		multiply_strassen_impl()(t1, b11, m2);
 
+		// M3 := A11 (B12 - B22)
 		std::cout << "compute m3" << std::endl;
 		matrix_copy(b12, t2);
 		matrix_sub(b22, t2);
 		multiply_strassen_impl()(a11, t2, m3);
 
+		// M4 := A22 (B21 - B11)
 		std::cout << "compute m4" << std::endl;
 		matrix_copy(b21, t2);
 		matrix_sub(b11, t2);
 		multiply_strassen_impl()(a22, t2, m4);
 
+		// M5 := (A11 + A12) B22
 		std::cout << "compute m5" << std::endl;
 		matrix_copy(a11, t1);
 		matrix_add(a12, t1);
 		multiply_strassen_impl()(t1, b22, m5);
 
+		// M6 := (A21 - A11) (B11 + B12)
 		std::cout << "compute m6" << std::endl;
 		matrix_copy(a21, t1);
 		matrix_sub(a11, t1);
@@ -329,6 +335,7 @@ struct multiply_strassen_impl {
 		matrix_add(b12, t2);
 		multiply_strassen_impl()(t1, t2, m6);
 
+		// M7 := (A12 - A22) (B21 + B22)
 		std::cout << "compute m7" << std::endl;
 		matrix_copy(a12, t1);
 		matrix_sub(a22, t1);
@@ -337,14 +344,21 @@ struct multiply_strassen_impl {
 		multiply_strassen_impl()(t1, t2, m7);
 
 		std::cout << "compute c" << std::endl;
+		// C11 = M1 + M4 - M5 + M7
 		matrix_copy(m1, c11);
 		matrix_add(m4, c11);
 		matrix_sub(m5, c11);
 		matrix_add(m7, c11);
+
+		// C12 = M3 + M5
 		matrix_copy(m3, c12);
 		matrix_add(m5, c12);
+
+		// C21 = M2 + M4
 		matrix_copy(m2, c21);
 		matrix_add(m4, c21);
+
+		// C22 = M1 - M2 + M3 + M6
 		matrix_copy(m1, c22);
 		matrix_sub(m2, c22);
 		matrix_add(m3, c22);
