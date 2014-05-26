@@ -238,7 +238,7 @@ struct op_sub {
 };
 
 template <typename A, typename B, typename Op>
-void matrix_op(A && a, B & b, Op op) {
+void matrix_op(const A & a, B & b, Op op) {
 	const size_t n = a.rows();
 	const size_t m = a.columns();
 	for (size_t i = 0; i < n; ++i) {
@@ -249,12 +249,12 @@ void matrix_op(A && a, B & b, Op op) {
 }
 
 template <typename A, typename B>
-void matrix_add(A && a, B & b) {
+void matrix_add(const A & a, B & b) {
 	matrix_op(a, b, op_add());
 }
 
 template <typename A, typename B>
-void matrix_sub(A && a, B & b) {
+void matrix_sub(const A & a, B & b) {
 	matrix_op(a, b, op_sub());
 }
 
